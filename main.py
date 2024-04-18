@@ -1,6 +1,9 @@
 import requests
+import time
+import pygame
 import tkinter as tk
 from tkinter import messagebox
+from gtts import gTTS
 
 def get_weather(api_key, city, state):
     location_query = f"{city},{state}"
@@ -12,15 +15,37 @@ def get_weather(api_key, city, state):
 def show_weather():
     city = city_entry.get()
     state = state_entry.get()
+
     try:
+        # get data
         weather_data = get_weather(api_key, city, state)
         temperature = weather_data['current']['temp_f']
         condition = weather_data['current']['condition']['text']
-        result_label.config(text=f"Weather in {city}: {temperature} F, {condition}")
+
+        # print 
+        result_label.config(text=f"Weather in {city}: {temperature}°F, {condition}")
+
+        # text to speech
+        weatherTTS = f"The weather in {city}, {state} is {condition} and the temperature is {temperature} degrees farenheit"
+        language = 'en'
+        tts = gTTS(text=weatherTTS, lang=language, slow=False)
+        tts.save("weather.mp3")
+        pygame.mixer.init()
+        pygame.mixer.music.load('weather.mp3')
+        pygame.mixer.music.play()
+
+        # log everything in file
+        f = open("log.txt", "a")
+        timestamp = time.strftime('%a %Y-%m-%d %H:%M:%S')
+        f.write(f"[{timestamp}] [{time.tzname[0]}] >> {city}, {state} >> {condition} {temperature} F\n")
+        f.close()
+
     except Exception as e:
+        print("Error fetching weather:", e)
         messagebox.showerror("Error", str(e))
+
         
-api_key = "x"
+api_key = ":)"
 
 root = tk.Tk()
 root.title("Weather App")
